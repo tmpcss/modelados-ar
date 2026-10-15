@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>Panel · Modelados</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main>
+    <section id="login" class="screen">
+      <header class="bar">
+        <span>Panel</span>
+        <a href="./" class="muted">Ver web</a>
+      </header>
+      <form id="login-form" class="admin-form">
+        <label class="field">
+          <span>Contraseña</span>
+          <input id="password" class="input" type="password" autocomplete="current-password" required>
+        </label>
+        <div>
+          <button class="text-button" type="submit">Entrar</button>
+        </div>
+      </form>
+      <p id="login-status" class="status" role="status"></p>
+    </section>
+
+    <section id="panel" class="screen" hidden>
+      <header class="bar">
+        <span>Panel</span>
+        <span class="bar-links">
+          <a href="./" class="muted">Ver web</a>
+          <button id="logout" class="text-button muted" type="button">Salir</button>
+        </span>
+      </header>
+
+      <h2 class="admin-section-title">Añadir modelo</h2>
+      <form id="upload-form" class="admin-form admin-form--tight">
+        <label class="field">
+          <span>Archivo .glb</span>
+          <input id="file" class="input" type="file" accept=".glb,model/gltf-binary" required>
+        </label>
+        <label class="field">
+          <span>Nombre</span>
+          <input id="name" class="input" type="text" required>
+        </label>
+        <div>
+          <button id="upload-button" class="text-button" type="submit">Añadir</button>
+        </div>
+      </form>
+
+      <h2 class="admin-section-title">Modelos</h2>
+      <ul id="admin-list" class="admin-list"></ul>
+      <p id="panel-status" class="status" role="status"></p>
+    </section>
+  </main>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

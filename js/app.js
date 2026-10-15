@@ -1,0 +1,114 @@
+const screens = {
+  intro: document.getElementById('intro'),
+  menu: document.getElementById('menu'),
+  viewer: document.getElementById('viewer'),
+};
+const list = document.getElementById('list');
+const count = document.getElementById('count');
+const menuStatus = document.getElementById('menu-status');
+const mv = document.getElementById('mv');
+const viewerTitle = document.getElementById('viewer-title');
+const viewerNote = document.getElementById('viewer-note');
+const progressFill = document.getElementById('progress-fill');
+
+let models = [];
+
+// El catálogo viene del panel (Vercel Blob). Si la API no está disponible,
+// por ejemplo en local con un servidor estático, se usa el catálogo de /models.
+async function loadCatalog() {
+  for (const source of ['/api/models', 'models/catalog.json']) {
+    try {
+      const res = await fetch(source);
+      if (res.ok) return await res.json();
+    } catch {}
+  }
+  throw new Error('Sin catálogo');
+}
+
+function show(name) {
+  for (const [key, el] of Object.entries(screens)) el.hidden = key !== name;
+  window.scrollTo(0, 0);
+}
+
+function renderMenu() {
+  list.replaceChildren(
+    ...models.map((model, i) => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = `#m/${encodeURIComponent(model.id)}`;
+
+      const thumb = document.createElement('model-viewer');
+      thumb.className = 'thumb';
+      thumb.src = model.url;
+      thumb.loading = 'lazy';
+      thumb.setAttribute('interaction-prompt', 'none');
+      thumb.setAttribute('camera-orbit', '30deg 75deg auto');
+      thumb.setAttribute('aria-hidden', 'true');
+
+      const index = document.createElement('span');
+      index.className = 'index';
+      index.textContent = String(i + 1).padStart(2, '0');
+
+      const name = document.createElement('span');
+      name.className = 'name';
+      name.textContent = model.name;
+
+      a.append(thumb, index, name);
+      li.append(a);
+      return li;
+    })
+  );
+  count.textContent = models.length ? String(models.length) : '';
+  menuStatus.textContent = models.length ? '' : 'Todavía no hay modelos disponibles.';
+}
+
+function openModel(id) {
+  const model = models.find((m) => m.id === id);
+  if (!model) return route('#menu');
+  viewerTitle.textContent = model.name;
+  viewerNote.hidden = true;
+  if (mv.src !== new URL(model.url, location.href).href) mv.src = model.url;
+  mv.alt = model.name;
+  show('viewer');
+}
+
+function route(hash = location.hash) {
+  if (hash !== location.hash) {
+    location.hash = hash;
+    return;
+  }
+  if (hash.startsWith('#m/')) openModel(decodeURIComponent(hash.slice(3)));
+  else if (hash === '#menu') show('menu');
+  else show('intro');
+}
+
+function note(text) {
+  viewerNote.textContent = text;
+  viewerNote.hidden = !text;
+}
+
+mv.addEventListener('progress', (e) => {
+  progressFill.style.transform = `scaleX(${e.detail.totalProgress})`;
+  progressFill.parentElement.classList.toggle('done', e.detail.totalProgress >= 1);
+});
+
+mv.addEventListener('load', () => {
+  if (!mv.canActivateAR) note('Abre esta página en un móvil compatible para verlo en tu espacio.');
+});
+
+mv.addEventListener('ar-status', (e) => {
+  if (e.detail.status === 'failed') {
+    note('No se pudo detectar el suelo. Prueba con más luz o sobre una superficie con textura.');
+  }
+});
+
+document.getElementById('start').addEventListener('click', () => route('#menu'));
+window.addEventListener('hashchange', () => route());
+
+try {
+  models = await loadCatalog();
+} catch {
+  menuStatus.textContent = 'No se pudo cargar el catálogo.';
+}
+renderMenu();
+route();

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e0e0e" media="(prefers-color-scheme: dark)">
+  <title>Modelados</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.2.0/dist/model-viewer.min.js"></script>
+</head>
+<body>
+  <main>
+    <section id="intro" class="screen">
+      <p class="eyebrow">Realidad aumentada</p>
+      <h1>Modelados</h1>
+      <p class="lead">Coloca objetos 3D en tu entorno a través de la cámara del móvil.</p>
+      <ol class="steps">
+        <li>Elige un modelo del menú.</li>
+        <li>Pulsa «Ver en tu espacio» y permite el acceso a la cámara.</li>
+        <li>Mueve el móvil despacio apuntando al suelo hasta que aparezca el modelo.</li>
+        <li>Arrastra para moverlo, gira con dos dedos y pellizca para cambiar su tamaño.</li>
+      </ol>
+      <button id="start" class="text-button" type="button">Empezar</button>
+    </section>
+
+    <section id="menu" class="screen" hidden>
+      <header class="bar">
+        <span>Modelados</span>
+        <span id="count" class="muted"></span>
+      </header>
+      <ul id="list" class="model-list"></ul>
+      <p id="menu-status" class="muted"></p>
+    </section>
+
+    <section id="viewer" class="screen screen--full" hidden>
+      <model-viewer
+        id="mv"
+        camera-controls
+        auto-rotate
+        autoplay
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        ar-placement="floor"
+        ar-scale="auto"
+        shadow-intensity="0.6"
+        interaction-prompt="none"
+        touch-action="pan-y">
+        <button slot="ar-button" class="text-button ar-button" type="button">Ver en tu espacio</button>
+        <p slot="ar-prompt" class="ar-prompt">Mueve el móvil despacio apuntando al suelo</p>
+        <div slot="progress-bar" class="progress"><span id="progress-fill"></span></div>
+      </model-viewer>
+      <header class="bar bar--overlay">
+        <a href="#menu" class="back">Volver</a>
+        <span id="viewer-title"></span>
+      </header>
+      <p id="viewer-note" class="viewer-note muted" hidden></p>
+    </section>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
