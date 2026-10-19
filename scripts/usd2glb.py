@@ -4,7 +4,9 @@
 #   ancho=1.0          lado mayor de la escena en metros
 #   excluir=obj1,obj2  objetos auxiliares que no deben verse
 #   apoyar             baja al suelo los objetos estáticos que flotan
+import json
 import os
+import struct
 import sys
 
 import bpy
@@ -98,6 +100,34 @@ bpy.ops.export_scene.gltf(
     export_lights=False,
     export_cameras=False,
 )
+
+
+def merge_animations(path):
+    """Une todas las animaciones del .glb en una: los visores reproducen solo la primera."""
+    with open(path, 'rb') as f:
+        data = f.read()
+    json_len = struct.unpack('<I', data[12:16])[0]
+    gltf = json.loads(data[20:20 + json_len])
+    anims = gltf.get('animations', [])
+    if len(anims) < 2:
+        return len(anims)
+    merged = {'name': 'Escena', 'channels': [], 'samplers': []}
+    for anim in anims:
+        offset = len(merged['samplers'])
+        merged['samplers'] += anim['samplers']
+        merged['channels'] += [{**c, 'sampler': c['sampler'] + offset} for c in anim['channels']]
+    gltf['animations'] = [merged]
+    chunk = json.dumps(gltf, separators=(',', ':')).encode()
+    chunk += b' ' * (-len(chunk) % 4)
+    rest = data[20 + json_len:]
+    total = 12 + 8 + len(chunk) + len(rest)
+    with open(path, 'wb') as f:
+        f.write(data[:8] + struct.pack('<I', total))  # magic + versión + longitud total
+        f.write(struct.pack('<I', len(chunk)) + b'JSON' + chunk + rest)
+    return len(anims)
+
+
+merged = merge_animations(dst)
 size = (hi - lo) * factor
 print(f'OK {dst} tamaño={size.x:.2f}x{size.y:.2f}x{size.z:.2f} m acciones={len(bpy.data.actions)} '
-      f'fotogramas={scene.frame_start}-{scene.frame_end} fps={scene.render.fps}')
+      f'fotogramas={scene.frame_start}-{scene.frame_end} fps={scene.render.fps} animaciones_unidas={merged}')

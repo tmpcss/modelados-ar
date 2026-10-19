@@ -5,5 +5,6 @@
   {"id": "paraguas", "name": "Paraguas", "url": "models/051f_Kids_Umbrella.glb"},
   {"id": "hucha", "name": "Hucha", "url": "models/052c_Piggybank.glb"},
   {"id": "escena", "name": "Escena", "url": "models/escena.glb", "iosUrl": "models/escena.usdz"},
-  {"id": "skater", "name": "Skater", "url": "models/skater.glb", "iosUrl": "models/skater.usdz"}
+  {"id": "skater", "name": "Skater", "url": "models/skater.glb", "iosUrl": "models/skater.usdz"},
+  {"id": "astronauta", "name": "Astronauta", "url": "models/astronauta.glb", "iosUrl": "models/astronauta.usdz"}
 ]
