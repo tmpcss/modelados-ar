@@ -68,6 +68,9 @@ function openModel(id) {
   viewerTitle.textContent = model.name;
   viewerNote.hidden = true;
   if (mv.src !== new URL(model.url, location.href).href) mv.src = model.url;
+  // Con un .usdz propio, Quick Look (iPhone) conserva las animaciones
+  if (model.iosUrl) mv.setAttribute('ios-src', model.iosUrl);
+  else mv.removeAttribute('ios-src');
   mv.alt = model.name;
   show('viewer');
 }

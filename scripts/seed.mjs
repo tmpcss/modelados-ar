@@ -6,6 +6,11 @@ import { basename } from 'node:path';
 import { put } from '@vercel/blob';
 import { readCatalog, writeCatalog } from '../lib/catalog.js';
 
+async function upload(path, contentType) {
+  const file = await readFile(new URL(`../${path}`, import.meta.url));
+  return put(`models/${basename(path)}`, file, { access: 'public', contentType, addRandomSuffix: true });
+}
+
 const local = JSON.parse(await readFile(new URL('../models/catalog.json', import.meta.url)));
 const catalog = await readCatalog();
 
@@ -14,16 +19,13 @@ for (const item of local) {
     console.log(`Ya existe: ${item.name}`);
     continue;
   }
-  const file = await readFile(new URL(`../${item.url}`, import.meta.url));
-  const blob = await put(`models/${basename(item.url)}`, file, {
-    access: 'public',
-    contentType: 'model/gltf-binary',
-    addRandomSuffix: true,
-  });
+  const blob = await upload(item.url, 'model/gltf-binary');
+  const iosBlob = item.iosUrl ? await upload(item.iosUrl, 'model/vnd.usdz+zip') : null;
   catalog.models.push({
     id: randomUUID(),
     name: item.name,
     url: blob.url,
+    ...(iosBlob ? { iosUrl: iosBlob.url } : {}),
     visible: true,
     createdAt: new Date().toISOString(),
   });

@@ -27,6 +27,7 @@ export async function POST(request) {
         id: randomUUID(),
         name: String(body.name).trim(),
         url: body.url,
+        ...(body.iosUrl ? { iosUrl: body.iosUrl } : {}),
         visible: true,
         createdAt: new Date().toISOString(),
       });
@@ -36,6 +37,13 @@ export async function POST(request) {
       if (index === -1) return json({ error: 'Modelo no encontrado' }, 404);
       if (typeof body.name === 'string' && body.name.trim()) models[index].name = body.name.trim();
       if (typeof body.visible === 'boolean') models[index].visible = body.visible;
+      // iosUrl: string para asignar un .usdz, null para quitarlo
+      if (body.iosUrl !== undefined) {
+        const previous = models[index].iosUrl;
+        if (previous && previous !== body.iosUrl) await del(previous).catch((err) => console.error(err));
+        if (body.iosUrl) models[index].iosUrl = body.iosUrl;
+        else delete models[index].iosUrl;
+      }
       break;
     }
     case 'move': {
@@ -49,7 +57,7 @@ export async function POST(request) {
     case 'delete': {
       if (index === -1) return json({ error: 'Modelo no encontrado' }, 404);
       const [removed] = models.splice(index, 1);
-      await del(removed.url).catch((err) => console.error(err));
+      await del([removed.url, removed.iosUrl].filter(Boolean)).catch((err) => console.error(err));
       break;
     }
     default:

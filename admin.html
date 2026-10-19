@@ -42,6 +42,10 @@
           <input id="file" class="input" type="file" accept=".glb,model/gltf-binary" required>
         </label>
         <label class="field">
+          <span>Archivo .usdz para iPhone (opcional, conserva las animaciones)</span>
+          <input id="ios-file" class="input" type="file" accept=".usdz,model/vnd.usdz+zip">
+        </label>
+        <label class="field">
           <span>Nombre</span>
           <input id="name" class="input" type="text" required>
         </label>
@@ -52,6 +56,7 @@
 
       <h2 class="admin-section-title">Modelos</h2>
       <ul id="admin-list" class="admin-list"></ul>
+      <input id="row-ios-file" type="file" accept=".usdz,model/vnd.usdz+zip" hidden>
       <p id="panel-status" class="status" role="status"></p>
     </section>
   </main>

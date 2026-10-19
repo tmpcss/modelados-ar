@@ -6,7 +6,7 @@ export async function GET() {
     const { models } = await readCatalog();
     const visible = models
       .filter((m) => m.visible)
-      .map(({ id, name, url }) => ({ id, name, url }));
+      .map(({ id, name, url, iosUrl }) => ({ id, name, url, iosUrl }));
     return json(visible, 200, {
       'cache-control': 'public, s-maxage=10, stale-while-revalidate=60',
     });

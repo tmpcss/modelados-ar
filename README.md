@@ -17,6 +17,7 @@ api/upload.js              tokens de subida directa a Vercel Blob
 lib/catalog.js             lectura/escritura de catalog.json en Blob
 models/                    modelos iniciales + catálogo local de respaldo
 scripts/seed.mjs           sube los modelos iniciales a Blob
+scripts/glb2usdz.py        convierte .glb a .usdz con animaciones (Blender)
 ```
 
 ## Despliegue
@@ -47,6 +48,12 @@ La RA necesita HTTPS, así que para probarla en el móvil usa la URL de Vercel.
 
 ## Notas
 
-- Si un .glb trae animación, se reproduce en la vista 3D y en RA en Android. En iPhone, Quick Look
-  convierte el modelo al vuelo y no incluye animaciones.
+- Si un .glb trae animación, se reproduce (la primera, en bucle) en la vista 3D y en RA en Android.
+  Para que también se anime en iPhone, el modelo necesita un .usdz: súbelo junto al .glb en el panel
+  o con «Añadir USDZ» en un modelo existente. Sin .usdz, Quick Look convierte el .glb al vuelo y lo
+  muestra sin animación. Para generar el .usdz:
+
+  ```
+  /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/glb2usdz.py -- modelo.glb modelo.usdz
+  ```
 - Hacer foto: en iPhone, con el botón de Quick Look; en Android, con la captura de pantalla del sistema.

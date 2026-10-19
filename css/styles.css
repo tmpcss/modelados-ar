@@ -328,6 +328,10 @@ h1 {
   padding: 12px 0;
 }
 
+@media (max-width: 600px) {
+  .admin-list li { grid-template-columns: 1fr; }
+}
+
 .admin-list li.is-hidden .input { color: var(--muted); }
 
 .admin-list .input {
@@ -339,7 +343,8 @@ h1 {
 
 .admin-actions {
   display: flex;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 0 16px;
   font-size: 0.9rem;
 }
 

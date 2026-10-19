@@ -7,6 +7,8 @@ const loginStatus = document.getElementById('login-status');
 const passwordInput = document.getElementById('password');
 const uploadForm = document.getElementById('upload-form');
 const fileInput = document.getElementById('file');
+const iosFileInput = document.getElementById('ios-file');
+const rowIosFileInput = document.getElementById('row-ios-file');
 const nameInput = document.getElementById('name');
 const uploadButton = document.getElementById('upload-button');
 const list = document.getElementById('admin-list');
@@ -67,6 +69,9 @@ function render(models) {
         button('↑', 'Subir en el orden', i === 0, () => act({ action: 'move', id: model.id, direction: 'up' })),
         button('↓', 'Bajar en el orden', i === models.length - 1, () => act({ action: 'move', id: model.id, direction: 'down' })),
         button(model.visible ? 'Ocultar' : 'Mostrar', null, false, () => act({ action: 'update', id: model.id, visible: !model.visible })),
+        model.iosUrl
+          ? button('Quitar USDZ', 'Quitar el archivo .usdz de iPhone', false, () => act({ action: 'update', id: model.id, iosUrl: null }))
+          : button('Añadir USDZ', 'Añadir un archivo .usdz para iPhone', false, () => pickUsdz(model.id)),
         button('Eliminar', null, false, () => {
           if (confirm(`¿Eliminar «${model.name}»? No se puede deshacer.`)) act({ action: 'delete', id: model.id });
         }, 'danger'),
@@ -89,6 +94,39 @@ function button(label, ariaLabel, disabled, onClick, extraClass = '') {
   b.addEventListener('click', onClick);
   return b;
 }
+
+function uploadFile(file, contentType, label) {
+  return upload(`models/${file.name}`, file, {
+    access: 'public',
+    handleUploadUrl: '/api/upload',
+    clientPayload: password,
+    contentType,
+    onUploadProgress: ({ percentage }) => setStatus(panelStatus, `Subiendo ${label} ${Math.round(percentage)} %`),
+  });
+}
+
+let usdzTarget = null;
+
+function pickUsdz(id) {
+  usdzTarget = id;
+  rowIosFileInput.value = '';
+  rowIosFileInput.click();
+}
+
+rowIosFileInput.addEventListener('change', async () => {
+  const file = rowIosFileInput.files[0];
+  if (!file || !usdzTarget) return;
+  if (!/\.usdz$/i.test(file.name)) {
+    setStatus(panelStatus, 'Selecciona un archivo .usdz', true);
+    return;
+  }
+  try {
+    const blob = await uploadFile(file, 'model/vnd.usdz+zip', '.usdz');
+    await act({ action: 'update', id: usdzTarget, iosUrl: blob.url });
+  } catch (err) {
+    setStatus(panelStatus, err.message, true);
+  }
+});
 
 async function act(body) {
   setStatus(panelStatus, 'Guardando…');
@@ -144,16 +182,16 @@ uploadForm.addEventListener('submit', async (e) => {
     setStatus(panelStatus, 'Selecciona un archivo .glb', true);
     return;
   }
+  const iosFile = iosFileInput.files[0];
+  if (iosFile && !/\.usdz$/i.test(iosFile.name)) {
+    setStatus(panelStatus, 'El archivo de iPhone debe ser .usdz', true);
+    return;
+  }
   uploadButton.disabled = true;
   try {
-    const blob = await upload(`models/${file.name}`, file, {
-      access: 'public',
-      handleUploadUrl: '/api/upload',
-      clientPayload: password,
-      contentType: 'model/gltf-binary',
-      onUploadProgress: ({ percentage }) => setStatus(panelStatus, `Subiendo ${Math.round(percentage)} %`),
-    });
-    render(await api('POST', { action: 'add', name: nameInput.value, url: blob.url }));
+    const blob = await uploadFile(file, 'model/gltf-binary', '.glb');
+    const iosBlob = iosFile ? await uploadFile(iosFile, 'model/vnd.usdz+zip', '.usdz') : null;
+    render(await api('POST', { action: 'add', name: nameInput.value, url: blob.url, iosUrl: iosBlob?.url }));
     uploadForm.reset();
     setStatus(panelStatus, 'Modelo añadido');
   } catch (err) {
