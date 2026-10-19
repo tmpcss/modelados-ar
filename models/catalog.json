@@ -6,5 +6,5 @@
   {"id": "hucha", "name": "Hucha", "url": "models/052c_Piggybank.glb"},
   {"id": "escena", "name": "Escena", "url": "models/escena.glb", "iosUrl": "models/escena.usdz"},
   {"id": "skater", "name": "Skater", "url": "models/skater.glb", "iosUrl": "models/skater.usdz"},
-  {"id": "astronauta", "name": "Astronauta", "url": "models/astronauta.glb", "iosUrl": "models/astronauta.usdz"}
+  {"id": "astronauta", "name": "Astronauta", "url": "models/astronauta.glb", "iosUrl": "models/astronauta.usdz", "cameraTarget": "0m 4.7m 0m", "cameraOrbit": "0deg 80deg 19m"}
 ]

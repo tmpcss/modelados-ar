@@ -19,7 +19,8 @@ models/                    modelos iniciales + catálogo local de respaldo
 scripts/seed.mjs           sube los modelos iniciales a Blob
 scripts/glb2usdz.py        convierte .glb a .usdz con animaciones (Blender)
 scripts/usd2glb.py         convierte una escena .usd/.usdc a .glb centrada y a escala (Blender)
-                           opciones: ancho=1.0  excluir=obj1,obj2  apoyar
+                           opciones: ancho=1.0  alto=obj:1.8  elevar=obj:3  bucle=obj
+                                     excluir=obj1,obj2  apoyar
 ```
 
 ## Despliegue
@@ -49,6 +50,9 @@ scripts/usd2glb.py         convierte una escena .usd/.usdc a .glb centrada y a e
 La RA necesita HTTPS, así que para probarla en el móvil usa la URL de Vercel.
 
 ## Notas
+
+- En `catalog.json`, `cameraTarget` y `cameraOrbit` (opcionales) fijan el encuadre de la vista 3D.
+  Se usan en escenas elevadas sobre el suelo para que la vista previa no muestre el hueco.
 
 - El menú junta dos fuentes: los modelos del panel (Vercel Blob) y los de `models/catalog.json`
   en el repo. Para añadir uno por git: copia el .glb (y .usdz) a `models/`, añádelo a

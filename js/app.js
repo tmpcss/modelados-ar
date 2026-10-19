@@ -79,6 +79,16 @@ function openModel(id) {
   // Con un .usdz propio, Quick Look (iPhone) conserva las animaciones
   if (model.iosUrl) mv.setAttribute('ios-src', model.iosUrl);
   else mv.removeAttribute('ios-src');
+  // Encuadre propio para escenas que flotan sobre el suelo (el hueco solo cuenta en RA)
+  const framing = [
+    ['camera-target', model.cameraTarget],
+    ['camera-orbit', model.cameraOrbit],
+    ['max-camera-orbit', model.cameraOrbit && 'auto auto 60m'],
+  ];
+  for (const [attr, value] of framing) {
+    if (value) mv.setAttribute(attr, value);
+    else mv.removeAttribute(attr);
+  }
   mv.alt = model.name;
   show('viewer');
 }
