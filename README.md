@@ -18,6 +18,7 @@ lib/catalog.js             lectura/escritura de catalog.json en Blob
 models/                    modelos iniciales + catálogo local de respaldo
 scripts/seed.mjs           sube los modelos iniciales a Blob
 scripts/glb2usdz.py        convierte .glb a .usdz con animaciones (Blender)
+scripts/usd2glb.py         convierte una escena .usd/.usdc a .glb centrada y a escala (Blender)
 ```
 
 ## Despliegue

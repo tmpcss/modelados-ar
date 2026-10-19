@@ -1,7 +1,8 @@
 [
-  { "id": "totem", "name": "Tótem", "url": "models/04f6_Totem_Pole.glb" },
-  { "id": "podio", "name": "Podio", "url": "models/04ff_Podium.glb" },
-  { "id": "pincel", "name": "Pincel", "url": "models/051e_Paintbrush.glb" },
-  { "id": "paraguas", "name": "Paraguas", "url": "models/051f_Kids_Umbrella.glb" },
-  { "id": "hucha", "name": "Hucha", "url": "models/052c_Piggybank.glb" }
+  {"id": "totem", "name": "Tótem", "url": "models/04f6_Totem_Pole.glb"},
+  {"id": "podio", "name": "Podio", "url": "models/04ff_Podium.glb"},
+  {"id": "pincel", "name": "Pincel", "url": "models/051e_Paintbrush.glb"},
+  {"id": "paraguas", "name": "Paraguas", "url": "models/051f_Kids_Umbrella.glb"},
+  {"id": "hucha", "name": "Hucha", "url": "models/052c_Piggybank.glb"},
+  {"id": "escena", "name": "Escena", "url": "models/escena.glb", "iosUrl": "models/escena.usdz"}
 ]
