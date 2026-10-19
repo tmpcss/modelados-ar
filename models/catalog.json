@@ -4,5 +4,6 @@
   {"id": "pincel", "name": "Pincel", "url": "models/051e_Paintbrush.glb"},
   {"id": "paraguas", "name": "Paraguas", "url": "models/051f_Kids_Umbrella.glb"},
   {"id": "hucha", "name": "Hucha", "url": "models/052c_Piggybank.glb"},
-  {"id": "escena", "name": "Escena", "url": "models/escena.glb", "iosUrl": "models/escena.usdz"}
+  {"id": "escena", "name": "Escena", "url": "models/escena.glb", "iosUrl": "models/escena.usdz"},
+  {"id": "skater", "name": "Skater", "url": "models/skater.glb", "iosUrl": "models/skater.usdz"}
 ]
