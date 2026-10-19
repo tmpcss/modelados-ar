@@ -49,6 +49,10 @@ La RA necesita HTTPS, así que para probarla en el móvil usa la URL de Vercel.
 
 ## Notas
 
+- El menú junta dos fuentes: los modelos del panel (Vercel Blob) y los de `models/catalog.json`
+  en el repo. Para añadir uno por git: copia el .glb (y .usdz) a `models/`, añádelo a
+  `catalog.json` y haz push. Los del repo no se pueden ocultar ni borrar desde el panel.
+
 - Si un .glb trae animación, se reproduce (la primera, en bucle) en la vista 3D y en RA en Android.
   Para que también se anime en iPhone, el modelo necesita un .usdz: súbelo junto al .glb en el panel
   o con «Añadir USDZ» en un modelo existente. Sin .usdz, Quick Look convierte el .glb al vuelo y lo

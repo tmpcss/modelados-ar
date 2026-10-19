@@ -13,16 +13,24 @@ const progressFill = document.getElementById('progress-fill');
 
 let models = [];
 
-// El catálogo viene del panel (Vercel Blob). Si la API no está disponible,
-// por ejemplo en local con un servidor estático, se usa el catálogo de /models.
+async function fetchList(source) {
+  try {
+    const res = await fetch(source, { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) return data;
+    }
+  } catch {}
+  return null;
+}
+
+// El menú junta los modelos del panel (Vercel Blob) con los del repositorio (models/catalog.json).
+// Si un nombre está en los dos, manda el del panel.
 async function loadCatalog() {
-  for (const source of ['/api/models', 'models/catalog.json']) {
-    try {
-      const res = await fetch(source);
-      if (res.ok) return await res.json();
-    } catch {}
-  }
-  throw new Error('Sin catálogo');
+  const [panel, repo] = await Promise.all([fetchList('/api/models'), fetchList('models/catalog.json')]);
+  if (!panel && !repo) throw new Error('Sin catálogo');
+  const names = new Set((panel || []).map((m) => m.name.toLowerCase()));
+  return [...(panel || []), ...(repo || []).filter((m) => !names.has(m.name.toLowerCase()))];
 }
 
 function show(name) {
