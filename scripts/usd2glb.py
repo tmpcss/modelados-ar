@@ -1,5 +1,5 @@
-# Convierte una escena .usd/.usdc/.usdz a .glb: centrada, apoyada en el suelo y escalada
-# para que su lado mayor mida el ancho indicado (en metros). Conserva las animaciones.
+# Prepara una escena .usd/.usdc/.usdz o .glb como .glb para la web: centrada, apoyada en el suelo
+# y escalada para que su lado mayor mida el ancho indicado (en metros). Conserva las animaciones.
 # Uso: /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/usd2glb.py -- escena.usdc escena.glb [opciones]
 #   ancho=1.0          lado mayor de la escena en metros
 #   excluir=obj1,obj2  objetos auxiliares que no deben verse
@@ -8,14 +8,20 @@
 #   elevar=obj:3       deja la base de ese objeto a esa altura del suelo y añade un ancla invisible
 #                      a ras de suelo para que los visores de RA respeten el hueco
 #   bucle=obj          repite el ciclo de ese objeto para que llene toda la animación sin cortes
+#   escala=1           factor de escala fijo (1 = tamaño original), en vez de ancho/alto
+#   elevar=4           sin objeto: deja el punto más bajo de toda la escena a esa altura
+#   rotar=obj:x:180    gira ese objeto sobre su origen (eje x, y o z; grados)
+#   encadenar=obj      une en un solo bucle todos los clips del esqueleto obj, en el orden con
+#                      menos saltos de postura y con un fundido corto entre ellos
+import itertools
 import json
+import math
 import os
 import struct
 import sys
 
 import bpy
-from mathutils import Vector
-from pxr import Usd
+from mathutils import Matrix, Vector
 
 args = sys.argv[sys.argv.index('--') + 1:]
 src, dst = os.path.abspath(args[0]), os.path.abspath(args[1])
@@ -28,20 +34,27 @@ ground = 'apoyar' in options
 def object_and_value(option):
     if option not in options:
         return None, None
-    name, value = options[option].rsplit(':', 1)
-    return name, float(value)
+    name, _, value = options[option].rpartition(':')
+    return name or None, float(value)
 
 
 height_obj, height_m = object_and_value('alto')
 lift_obj, lift_m = object_and_value('elevar')
+lift = 'elevar' in options
 loop_obj = options.get('bucle')
+fixed_scale = float(options['escala']) if 'escala' in options else None
+chain_obj = options.get('encadenar')
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
-bpy.ops.wm.usd_import(filepath=src, import_lights=False, import_cameras=False, set_frame_range=True)
 scene = bpy.context.scene
-# Respeta los fotogramas por segundo del archivo original
-scene.render.fps = round(Usd.Stage.Open(src).GetTimeCodesPerSecond())
-scene.render.fps_base = 1
+if src.lower().endswith(('.glb', '.gltf')):
+    bpy.ops.import_scene.gltf(filepath=src)
+else:
+    from pxr import Usd
+    bpy.ops.wm.usd_import(filepath=src, import_lights=False, import_cameras=False, set_frame_range=True)
+    # Respeta los fotogramas por segundo del archivo original
+    scene.render.fps = round(Usd.Stage.Open(src).GetTimeCodesPerSecond())
+    scene.render.fps_base = 1
 
 # Esqueletos sin pesos no deforman nada y en glTF pueden colapsar la malla: se eliminan
 for obj in [o for o in scene.objects if o.type == 'MESH']:
@@ -51,6 +64,10 @@ for obj in [o for o in scene.objects if o.type == 'MESH']:
 used = {m.object for o in scene.objects for m in o.modifiers if m.type == 'ARMATURE'}
 for arm in [o for o in scene.objects if o.type == 'ARMATURE' and o not in used]:
     bpy.data.objects.remove(arm)
+
+# Formas auxiliares de huesos que crea el importador de glTF (no se exportan, pero cuentan al medir)
+for shape in {pb.custom_shape for o in scene.objects if o.type == 'ARMATURE' for pb in o.pose.bones} - {None}:
+    bpy.data.objects.remove(shape)
 
 # Objetos auxiliares que no deben verse (se eliminan con sus hijos)
 for obj in [o for o in scene.objects if o.name in exclude]:
@@ -90,6 +107,70 @@ def min_z(obj):
     return z_range(obj)[0]
 
 
+# Rotar: corrige objetos mal orientados girándolos sobre su propio origen
+if 'rotar' in options:
+    name, axis, degrees = options['rotar'].split(':')
+    obj = scene.objects[name]
+    origin = obj.matrix_world.translation.copy()
+    obj.matrix_world = (Matrix.Translation(origin) @ Matrix.Rotation(math.radians(float(degrees)), 4, axis.upper())
+                        @ Matrix.Translation(-origin) @ obj.matrix_world)
+    bpy.context.view_layer.update()
+
+# Encadenar: todos los clips del esqueleto seguidos en un único bucle sin saltos
+if chain_obj:
+    arm = scene.objects[chain_obj]
+    clips = [a for a in bpy.data.actions if any(fc.data_path.startswith('pose.bones') for fc in a.fcurves)]
+    fade = round(scene.render.fps / 2)
+
+    def pose_at(action, frame):
+        arm.animation_data.action = action
+        scene.frame_set(int(frame))
+        return [(pb.rotation_quaternion.copy(), pb.location.copy()) for pb in arm.pose.bones]
+
+    def jump(a, b):
+        return sum(1 - abs(qa.dot(qb)) + (la - lb).length for (qa, la), (qb, lb) in zip(a, b))
+
+    edges = {a.name: (pose_at(a, a.frame_range[0] + fade), pose_at(a, a.frame_range[1])) for a in clips}
+    first, rest = clips[0], clips[1:]
+    order = min(([first, *p] for p in itertools.permutations(rest)),
+                key=lambda seq: sum(jump(edges[x.name][1], edges[y.name][0])
+                                    for x, y in zip(seq, seq[1:] + seq[:1])))
+    # Un mismo giro puede guardarse como q o -q; si dos clips seguidos usan signos opuestos,
+    # el fundido entre ellos da la vuelta larga. Se alinea cada clip con el final del anterior.
+    def quat_curves(action, bone):
+        path = f'pose.bones["{bone}"].rotation_quaternion'
+        return sorted((fc for fc in action.fcurves if fc.data_path == path), key=lambda fc: fc.array_index)
+
+    for prev, cur in zip(order, order[1:]):
+        for pb in arm.pose.bones:
+            pc, cc = quat_curves(prev, pb.name), quat_curves(cur, pb.name)
+            if len(pc) == 4 and len(cc) == 4:
+                end = [fc.evaluate(prev.frame_range[1]) for fc in pc]
+                start = [fc.evaluate(cur.frame_range[0]) for fc in cc]
+                if sum(x * y for x, y in zip(end, start)) < 0:
+                    for fc in cc:
+                        for kp in fc.keyframe_points:
+                            kp.co.y, kp.handle_left.y, kp.handle_right.y = -kp.co.y, -kp.handle_left.y, -kp.handle_right.y
+
+    arm.animation_data.action = None
+    t = scene.frame_start
+    for i, action in enumerate([*order, order[0]]):
+        a_start, a_end = action.frame_range
+        if i == 0:
+            a_start += fade  # el bucle termina justo aquí, con el fundido hacia el primer clip
+        if i == len(order):
+            a_end = a_start + fade  # tramo final: funde de vuelta al inicio del primer clip
+        strip = arm.animation_data.nla_tracks.new().strips.new(action.name, int(t), action)
+        strip.action_frame_start, strip.action_frame_end = a_start, a_end
+        strip.extrapolation = 'NOTHING'
+        if i:
+            strip.blend_in = fade
+        t = strip.frame_end - fade
+    scene.frame_end = int(round(t + fade))
+    print('ENCADENAR', ' -> '.join(a.name for a in order), f'({(scene.frame_end - scene.frame_start) / scene.render.fps:.1f} s)')
+    scene.frame_set(scene.frame_start)
+
+
 # Bucle: escala el tiempo del ciclo para que quepa un número entero de veces en la escena
 if loop_obj:
     action = scene.objects[loop_obj].animation_data.action
@@ -127,7 +208,9 @@ bpy.context.view_layer.update()
 corners = [o.matrix_world @ Vector(c) for o in scene.objects if o.type == 'MESH' for c in o.bound_box]
 lo = Vector(min(c[i] for c in corners) for i in range(3))
 hi = Vector(max(c[i] for c in corners) for i in range(3))
-if height_obj:
+if fixed_scale:
+    factor = fixed_scale
+elif height_obj:
     z0, z1 = z_range(scene.objects[height_obj])
     factor = height_m / (z1 - z0)
 else:
@@ -136,9 +219,10 @@ else:
 pivot.scale = (factor,) * 3
 pivot.location = (-(lo.x + hi.x) / 2 * factor, -(lo.y + hi.y) / 2 * factor, -lo.z * factor)
 
-if lift_obj:
+if lift:
     bpy.context.view_layer.update()
-    pivot.location.z += lift_m - min_z(scene.objects[lift_obj])
+    lowest = min_z(scene.objects[lift_obj]) if lift_obj else min_z(pivot)
+    pivot.location.z += lift_m - lowest
     # Ancla invisible en el suelo: los visores apoyan la caja que envuelve el modelo,
     # así que sin ella la escena bajaría al suelo
     mesh = bpy.data.meshes.new('ancla')
