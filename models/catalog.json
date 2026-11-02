@@ -1,11 +1,4 @@
 [
-  {"id": "totem", "name": "Tótem", "url": "models/04f6_Totem_Pole.glb"},
-  {"id": "podio", "name": "Podio", "url": "models/04ff_Podium.glb"},
-  {"id": "pincel", "name": "Pincel", "url": "models/051e_Paintbrush.glb"},
-  {"id": "paraguas", "name": "Paraguas", "url": "models/051f_Kids_Umbrella.glb"},
-  {"id": "hucha", "name": "Hucha", "url": "models/052c_Piggybank.glb"},
-  {"id": "escena", "name": "Escena", "url": "models/escena.glb", "iosUrl": "models/escena.usdz"},
-  {"id": "skater", "name": "Skater", "url": "models/skater.glb", "iosUrl": "models/skater.usdz"},
-  {"id": "astronauta", "name": "Astronauta", "url": "models/astronauta.glb", "iosUrl": "models/astronauta.usdz", "cameraTarget": "0m 4.7m 0m", "cameraOrbit": "0deg 80deg 19m"},
-  {"id": "portal", "name": "Portal", "url": "models/portal.glb", "iosUrl": "models/portal.usdz", "cameraTarget": "-2.5m 5.1m 1m", "cameraOrbit": "15deg 80deg 14m"}
+  {"id": "portal", "name": "Portal", "url": "models/portal.glb", "iosUrl": "models/portal.usdz", "cameraTarget": "-2.5m 5.1m 1m", "cameraOrbit": "15deg 80deg 14m"},
+  {"id": "portal03", "name": "Portal 03", "url": "models/portal03.glb"}
 ]

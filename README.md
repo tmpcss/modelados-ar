@@ -32,7 +32,7 @@ scripts/optimizar_glb.py   reduce el peso de las texturas de un .glb (sips de ma
    (crea la variable `BLOB_READ_WRITE_TOKEN`).
 4. **Settings → Environment Variables**: añade `ADMIN_PASSWORD` con la contraseña del panel.
 5. Redespliega (Deployments → Redeploy) para que las variables tengan efecto.
-6. Carga los 5 modelos iniciales desde tu ordenador:
+6. Carga los modelos iniciales desde tu ordenador:
 
    ```
    npm install
