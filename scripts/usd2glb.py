@@ -1,6 +1,6 @@
-# Prepara una escena .usd/.usdc/.usdz o .glb como .glb para la web: centrada, apoyada en el suelo
+# Prepara una escena .fbx/.usd/.usdc/.usdz/.glb como .glb para la web: centrada, apoyada en el suelo
 # y escalada para que su lado mayor mida el ancho indicado (en metros). Conserva las animaciones.
-# Uso: /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/usd2glb.py -- escena.usdc escena.glb [opciones]
+# Uso: /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/usd2glb.py -- escena.fbx escena.glb [opciones]
 #   ancho=1.0          lado mayor de la escena en metros
 #   excluir=obj1,obj2  objetos auxiliares que no deben verse
 #   apoyar             baja al suelo los objetos estáticos que flotan
@@ -49,6 +49,8 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 if src.lower().endswith(('.glb', '.gltf')):
     bpy.ops.import_scene.gltf(filepath=src)
+elif src.lower().endswith('.fbx'):
+    bpy.ops.import_scene.fbx(filepath=src)
 else:
     from pxr import Usd
     bpy.ops.wm.usd_import(filepath=src, import_lights=False, import_cameras=False, set_frame_range=True)

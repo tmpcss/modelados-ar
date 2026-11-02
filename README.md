@@ -18,7 +18,7 @@ lib/catalog.js             lectura/escritura de catalog.json en Blob
 models/                    modelos iniciales + catálogo local de respaldo
 scripts/seed.mjs           sube los modelos iniciales a Blob
 scripts/glb2usdz.py        convierte .glb a .usdz con animaciones (Blender)
-scripts/usd2glb.py         prepara una escena .usd/.usdc/.glb como .glb centrada y a escala (Blender)
+scripts/usd2glb.py         prepara una escena .fbx/.usd/.usdc/.glb como .glb centrada y a escala (Blender)
                            opciones: ancho=1.0  escala=1  alto=obj:1.8  elevar=obj:3 | elevar=4
                                      bucle=obj  encadenar=obj  rotar=obj:x:180  excluir=obj1,obj2  apoyar
 scripts/optimizar_glb.py   reduce el peso de las texturas de un .glb (sips de macOS)
