@@ -1,4 +1,4 @@
 [
   {"id": "portal", "name": "Portal", "url": "models/portal.glb", "iosUrl": "models/portal.usdz", "cameraTarget": "-2.5m 5.1m 1m", "cameraOrbit": "15deg 80deg 14m"},
-  {"id": "portal04-baked", "name": "Portal 04", "url": "models/portal04_Baked.glb"}
+  {"id": "portal05", "name": "Portal 05", "url": "models/portal05.glb"}
 ]
