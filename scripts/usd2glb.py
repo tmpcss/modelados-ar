@@ -198,6 +198,15 @@ if clip_obj:
         anim.nla_tracks.remove(track)
     print(f'CLIP {clip_obj}: {anim.action.name}')
 
+# El importador de glTF deja en pistas NLA las animaciones que no son la primera, y la
+# exportación solo incluye la acción activa: cada objeto activa la suya
+for obj in scene.objects:
+    anim = obj.animation_data
+    if obj.name != chain_obj and anim and not anim.action and anim.nla_tracks:
+        anim.action = anim.nla_tracks[0].strips[0].action
+        for track in list(anim.nla_tracks):
+            anim.nla_tracks.remove(track)
+
 if duration:
     scene.frame_end = scene.frame_start + round(duration * scene.render.fps)
 

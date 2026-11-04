@@ -1,5 +1,5 @@
 [
-  {"id": "visitante1", "name": "Visitante 1", "url": "models/visitante1.glb", "iosUrl": "models/visitante1.usdz", "cameraTarget": "-2.5m 5.1m -7.62m", "cameraOrbit": "15deg 80deg 20m"},
+  {"id": "visitante1", "name": "Visitante 1", "url": "models/visitante1.glb", "iosUrl": "models/visitante1.usdz", "cameraTarget": "-0.32m 4.76m -7.67m", "cameraOrbit": "15deg 80deg 14m"},
   {"id": "visitante2", "name": "Visitante 2", "url": "models/visitante2.glb", "iosUrl": "models/visitante2.usdz", "cameraTarget": "-0.1m 5.8m -0.5m", "cameraOrbit": "0deg 80deg 18m"},
   {"id": "visitante3", "name": "Visitante 3", "url": "models/visitante3.glb", "iosUrl": "models/visitante3.usdz"}
 ]

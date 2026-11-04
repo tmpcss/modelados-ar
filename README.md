@@ -72,6 +72,6 @@ La RA necesita HTTPS, así que para probarla en el móvil usa la URL de Vercel.
 - Marcador del suelo (Visitante 1 y 2): anillo y onda al 10 % en el suelo, bajo la figura, para
   encontrarla al apuntar al suelo. En RA de Android se desvanece 4 s después de colocar el modelo
   (`js/app.js`). En iPhone lo oculta el .usdz, generado con
-  `glb2usdz.py -- modelo.glb modelo.usdz duracion=120 marcador=4`: se ve 4 s, se encoge y no
+  `glb2usdz.py -- modelo.glb modelo.usdz duracion=120 marcador=4 fps=12`: se ve 4 s, se encoge y no
   vuelve hasta que termina la línea de tiempo de unos 2 min.
 - Hacer foto: en iPhone, con el botón de Quick Look; en Android, con la captura de pantalla del sistema.

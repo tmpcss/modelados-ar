@@ -3,6 +3,7 @@
 #   duracion=120   repite el bucle de la escena hasta durar al menos esos segundos
 #   marcador=4     el marcador del suelo (scripts/marcador.py) se ve esos segundos y luego se encoge
 #                  hasta desaparecer; con duracion= queda oculto el resto de la línea de tiempo
+#   fps=12         guarda menos fotogramas por segundo (archivo más ligero; Quick Look interpola)
 import math
 import os
 import sys
@@ -96,8 +97,29 @@ stage = Usd.Stage.Open(usdc)
 UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.y)
 root = stage.GetDefaultPrim()
 UsdGeom.Xformable(root).AddRotateXOp().Set(-90.0)
-stage.GetRootLayer().Save()
 
-if not UsdUtils.CreateNewARKitUsdzPackage(usdc, dst):
+# Aligera la animación (Blender guarda todos los fotogramas, y con duracion= son miles):
+# los valores que no cambian quedan fijos y con fps= se guardan menos fotogramas por segundo;
+# Quick Look interpola entre los que quedan
+step = round(fps / float(options['fps'])) if 'fps' in options else 1
+start, end = stage.GetStartTimeCode(), stage.GetEndTimeCode()
+for prim in stage.Traverse():
+    for attr in prim.GetAttributes():
+        times = attr.GetTimeSamples()
+        if len(times) < 2:
+            continue
+        values = [attr.Get(t) for t in times]
+        if all(v == values[0] for v in values):
+            attr.Clear()
+            attr.Set(values[0])
+        elif step > 1:
+            for t in times:
+                if (t - start) % step and t != end:
+                    attr.ClearAtTime(t)
+# Exportar a un archivo nuevo: guardar sobre el mismo .usdc no recupera el espacio de lo borrado
+packed = os.path.join(work, 'scene.usdc')
+stage.GetRootLayer().Export(packed)
+
+if not UsdUtils.CreateNewARKitUsdzPackage(packed, dst):
     sys.exit(f'Error al empaquetar {dst}')
 print(f'OK {dst} animaciones={len(actions)} fotogramas={scene.frame_start}-{scene.frame_end}')
