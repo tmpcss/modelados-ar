@@ -1,5 +1,5 @@
 [
   {"id": "portal", "name": "Portal", "url": "models/portal.glb", "iosUrl": "models/portal.usdz", "cameraTarget": "-2.5m 5.1m 1m", "cameraOrbit": "15deg 80deg 14m"},
   {"id": "portal07", "name": "Portal 07", "url": "models/portal07.glb", "iosUrl": "models/portal07.usdz"},
-  {"id": "portal07_gato", "name": "Portal Gato", "url": "models/portal07_gato.glb", "iosUrl": "models/portal07_gato.usdz"}
+  {"id": "portal07_gato", "name": "Portal Gato", "url": "models/portal07_2_gato.glb", "iosUrl": "models/portal07_2_gato.usdz"}
 ]

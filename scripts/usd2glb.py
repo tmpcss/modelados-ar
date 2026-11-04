@@ -7,7 +7,7 @@
 #   alto=obj:1.8       escala la escena para que ese objeto mida esos metros de alto (en vez de ancho)
 #   elevar=obj:3       deja la base de ese objeto a esa altura del suelo y añade un ancla invisible
 #                      a ras de suelo para que los visores de RA respeten el hueco
-#   bucle=obj          repite el ciclo de ese objeto para que llene toda la animación sin cortes
+#   bucle=obj1,obj2    repite el ciclo de esos objetos para que llene toda la animación sin cortes
 #   escala=1           factor de escala fijo (1 = tamaño original), en vez de ancho/alto
 #   elevar=4           sin objeto: deja el punto más bajo de toda la escena a esa altura
 #   rotar=obj:x:180    gira ese objeto sobre su origen (eje x, y o z; grados)
@@ -41,7 +41,7 @@ def object_and_value(option):
 height_obj, height_m = object_and_value('alto')
 lift_obj, lift_m = object_and_value('elevar')
 lift = 'elevar' in options
-loop_obj = options.get('bucle')
+loop_objs = list(filter(None, options.get('bucle', '').split(',')))
 fixed_scale = float(options['escala']) if 'escala' in options else None
 chain_obj = options.get('encadenar')
 
@@ -173,11 +173,30 @@ if chain_obj:
     scene.frame_set(scene.frame_start)
 
 
+def is_closed(action, start, end):
+    """El ciclo acaba donde empieza (q y -q son el mismo giro)."""
+    for path in {fc.data_path for fc in action.fcurves}:
+        curves = sorted((fc for fc in action.fcurves if fc.data_path == path), key=lambda fc: fc.array_index)
+        a, b = [fc.evaluate(start) for fc in curves], [fc.evaluate(end) for fc in curves]
+        if path.endswith('rotation_quaternion') and len(curves) == 4:
+            if 1 - abs(sum(x * y for x, y in zip(a, b))) > 1e-4:
+                return False
+        elif max(abs(x - y) for x, y in zip(a, b)) >= 0.01:
+            return False
+    return True
+
+
 # Bucle: escala el tiempo del ciclo para que quepa un número entero de veces en la escena
-if loop_obj:
-    action = scene.objects[loop_obj].animation_data.action
+for loop_obj in loop_objs:
+    anim = scene.objects[loop_obj].animation_data
+    # El importador de glTF deja en pistas NLA las animaciones que no son la primera
+    if not anim.action and anim.nla_tracks:
+        anim.action = anim.nla_tracks[0].strips[0].action
+        for track in list(anim.nla_tracks):
+            anim.nla_tracks.remove(track)
+    action = anim.action
     start, end = action.frame_range
-    closed = max(abs(fc.evaluate(start) - fc.evaluate(end)) for fc in action.fcurves) < 0.01
+    closed = is_closed(action, start, end)
     period = end - start if closed else end - start + 1
     scene_len = scene.frame_end - scene.frame_start
     cycles = max(1, round(scene_len / period))
