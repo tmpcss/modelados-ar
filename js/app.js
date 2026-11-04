@@ -50,7 +50,8 @@ function renderMenu() {
       thumb.src = model.url;
       thumb.loading = 'lazy';
       thumb.setAttribute('interaction-prompt', 'none');
-      thumb.setAttribute('camera-orbit', '30deg 75deg auto');
+      thumb.setAttribute('camera-orbit', model.cameraOrbit || '30deg 75deg auto');
+      if (model.cameraTarget) thumb.setAttribute('camera-target', model.cameraTarget);
       thumb.setAttribute('aria-hidden', 'true');
 
       const index = document.createElement('span');
