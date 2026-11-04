@@ -22,7 +22,7 @@ scripts/usd2glb.py         prepara una escena .fbx/.usd/.usdc/.glb como .glb cen
                            opciones: ancho=1.0  escala=1  alto=obj:1.8  elevar=obj:3 | elevar=4
                                      bucle=obj1,obj2  encadenar=obj  clip=obj:nombre  duracion=18  rotar=obj:x:180  excluir=obj1,obj2  apoyar
 scripts/optimizar_glb.py   reduce el peso de las texturas de un .glb (sips de macOS)
-scripts/marcador.py        añade bajo una figura flotante un anillo en el suelo, una onda y un hilo de luz
+scripts/marcador.py        añade bajo una figura flotante un anillo en el suelo y una onda
 ```
 
 ## Despliegue
@@ -69,7 +69,7 @@ La RA necesita HTTPS, así que para probarla en el móvil usa la URL de Vercel.
   /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/glb2usdz.py -- modelo.glb modelo.usdz
   ```
 
-- Marcador del suelo (Visitante 1 y 2): anillo, onda e hilo de luz al 10 % bajo la figura, para
+- Marcador del suelo (Visitante 1 y 2): anillo y onda al 10 % en el suelo, bajo la figura, para
   encontrarla al apuntar al suelo. En RA de Android se desvanece 4 s después de colocar el modelo
   (`js/app.js`). En iPhone lo oculta el .usdz, generado con
   `glb2usdz.py -- modelo.glb modelo.usdz duracion=120 marcador=4`: se ve 4 s, se encoge y no

@@ -120,7 +120,7 @@ mv.addEventListener('progress', (e) => {
 // Marcador del suelo (scripts/marcador.py): ayuda a encontrar las figuras que flotan.
 // En RA de Android se ve unos segundos tras colocar el modelo y se desvanece para siempre.
 // Quick Look no ejecuta este código: allí lo oculta la animación del propio .usdz.
-const MARKER_MATERIALS = ['marcador', 'marcador_hilo'];
+const MARKER_MATERIALS = ['marcador'];
 const MARKER_VISIBLE_MS = 4000;
 const MARKER_FADE_MS = 500;
 let markerTimer = null;

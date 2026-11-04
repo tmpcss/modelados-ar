@@ -1,7 +1,7 @@
-# Uso: python3 scripts/marcador.py entrada.glb salida.glb x z altura_hilo  (x, z y altura en metros, ejes glTF)
-# Añade en el suelo, bajo (x, z), un anillo blanco, una onda que se expande y un hilo de luz hasta altura_hilo.
+# Uso: python3 scripts/marcador.py entrada.glb salida.glb x z  (en metros, ejes glTF)
+# Añade en el suelo, bajo (x, z), un anillo blanco y una onda que se expande.
 import sys,json,struct,math
-src,dst=sys.argv[1:3]; X,Z,H=map(float,sys.argv[3:6])
+src,dst=sys.argv[1:3]; X,Z=map(float,sys.argv[3:5])
 d=open(src,'rb').read(); l=struct.unpack('<I',d[12:16])[0]; j=json.loads(d[20:20+l])
 bl=struct.unpack('<I',d[20+l:24+l])[0]; B=bytearray(d[28+l:28+l+bl])
 
@@ -33,30 +33,18 @@ def ring(r0,r1,y,seg=128):
         idx+=[a0,b0,a1,a1,b0,b1]
     return pos,[(0,1,0)]*len(pos),idx
 
-def tube(r,h,seg=16):
-    pos=[];nrm=[];idx=[]
-    for k in range(seg):
-        a=2*math.pi*k/seg; c,s=math.cos(a),math.sin(a)
-        pos+=[(r*c,0,r*s),(r*c,h,r*s)]; nrm+=[(c,0,s),(c,0,s)]
-        a0,a1,b0,b1=2*k,2*k+1,(2*k+2)%(2*seg),(2*k+3)%(2*seg)
-        idx+=[a0,a1,b0,b0,a1,b1]
-    return pos,nrm,idx
 
 mats=j['materials']
 mats.append({'name':'marcador','doubleSided':True,'emissiveFactor':[1,1,1],
              'alphaMode':'BLEND','pbrMetallicRoughness':{'baseColorFactor':[1,1,1,0.1],'metallicFactor':0,'roughnessFactor':1}})
 m_ring=len(mats)-1
-mats.append({'name':'marcador_hilo','doubleSided':True,'alphaMode':'BLEND','emissiveFactor':[1,1,1],
-             'pbrMetallicRoughness':{'baseColorFactor':[1,1,1,0.1],'metallicFactor':0,'roughnessFactor':1}})
-m_hilo=len(mats)-1
 
 R=0.6
 nodes=j['nodes']
 def node(**kw): nodes.append(kw); return len(nodes)-1
 n_ring=node(name='marcador_anillo',mesh=mesh('marcador_anillo',*ring(R-0.04,R,0.003),m_ring))
 n_onda=node(name='marcador_onda',mesh=mesh('marcador_onda',*ring(R-0.02,R,0.004),m_ring))
-n_hilo=node(name='marcador_hilo',mesh=mesh('marcador_hilo',*tube(0.012,H),m_hilo))
-n_root=node(name='marcador',translation=[X,0,Z],children=[n_ring,n_onda,n_hilo])
+n_root=node(name='marcador',translation=[X,0,Z],children=[n_ring,n_onda])
 j['scenes'][0]['nodes'].append(n_root)
 
 # Onda: crece de 0,3 a 2,2 veces el anillo en el 90 % del periodo y desaparece hasta el siguiente
