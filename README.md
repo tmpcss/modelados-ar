@@ -3,6 +3,8 @@
 Web app para ver modelos 3D (.glb) en realidad aumentada desde el móvil, anclados al suelo.
 Funciona en Android (WebXR / Scene Viewer) e iPhone (Quick Look) sin instalar nada.
 
+Cómo se preparan los modelos, decisiones tomadas y forma de trabajo: [PROCESO.md](PROCESO.md).
+
 - `/` — intro, menú de modelos, vista 3D y botón «Ver en tu espacio».
 - `/admin.html` — panel para subir, renombrar, ordenar, ocultar y eliminar modelos.
 
