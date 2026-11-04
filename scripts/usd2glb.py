@@ -13,6 +13,8 @@
 #   rotar=obj:x:180    gira ese objeto sobre su origen (eje x, y o z; grados)
 #   encadenar=obj      une en un solo bucle todos los clips del esqueleto obj, en el orden con
 #                      menos saltos de postura y con un fundido corto entre ellos
+#   clip=obj:nombre    deja en el esqueleto obj solo el clip cuyo nombre empieza así
+#   duracion=18        fija la duración del bucle en segundos (con bucle=)
 import itertools
 import json
 import math
@@ -44,6 +46,8 @@ lift = 'elevar' in options
 loop_objs = list(filter(None, options.get('bucle', '').split(',')))
 fixed_scale = float(options['escala']) if 'escala' in options else None
 chain_obj = options.get('encadenar')
+clip_obj, _, clip_name = options.get('clip', '').partition(':')
+duration = float(options['duracion']) if 'duracion' in options else None
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
@@ -185,6 +189,17 @@ def is_closed(action, start, end):
             return False
     return True
 
+
+# Clip: el esqueleto reproduce solo ese clip (el importador deja los demás en pistas NLA)
+if clip_obj:
+    anim = scene.objects[clip_obj].animation_data
+    anim.action = next(a for a in bpy.data.actions if a.name.startswith(clip_name))
+    for track in list(anim.nla_tracks):
+        anim.nla_tracks.remove(track)
+    print(f'CLIP {clip_obj}: {anim.action.name}')
+
+if duration:
+    scene.frame_end = scene.frame_start + round(duration * scene.render.fps)
 
 # Bucle: escala el tiempo del ciclo para que quepa un número entero de veces en la escena
 for loop_obj in loop_objs:

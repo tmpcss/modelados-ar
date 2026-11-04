@@ -20,8 +20,9 @@ scripts/seed.mjs           sube los modelos iniciales a Blob
 scripts/glb2usdz.py        convierte .glb a .usdz con animaciones (Blender)
 scripts/usd2glb.py         prepara una escena .fbx/.usd/.usdc/.glb como .glb centrada y a escala (Blender)
                            opciones: ancho=1.0  escala=1  alto=obj:1.8  elevar=obj:3 | elevar=4
-                                     bucle=obj1,obj2  encadenar=obj  rotar=obj:x:180  excluir=obj1,obj2  apoyar
+                                     bucle=obj1,obj2  encadenar=obj  clip=obj:nombre  duracion=18  rotar=obj:x:180  excluir=obj1,obj2  apoyar
 scripts/optimizar_glb.py   reduce el peso de las texturas de un .glb (sips de macOS)
+scripts/marcador.py        añade bajo una figura flotante un anillo en el suelo, una onda y un hilo de luz
 ```
 
 ## Despliegue
@@ -67,4 +68,10 @@ La RA necesita HTTPS, así que para probarla en el móvil usa la URL de Vercel.
   ```
   /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/glb2usdz.py -- modelo.glb modelo.usdz
   ```
+
+- Marcador del suelo (Visitante 1 y 2): anillo, onda e hilo de luz al 10 % bajo la figura, para
+  encontrarla al apuntar al suelo. En RA de Android se desvanece 4 s después de colocar el modelo
+  (`js/app.js`). En iPhone lo oculta el .usdz, generado con
+  `glb2usdz.py -- modelo.glb modelo.usdz duracion=120 marcador=4`: se ve 4 s, se encoge y no
+  vuelve hasta que termina la línea de tiempo de unos 2 min.
 - Hacer foto: en iPhone, con el botón de Quick Look; en Android, con la captura de pantalla del sistema.

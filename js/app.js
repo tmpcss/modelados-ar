@@ -52,6 +52,7 @@ function renderMenu() {
       thumb.setAttribute('interaction-prompt', 'none');
       thumb.setAttribute('camera-orbit', model.cameraOrbit || '30deg 75deg auto');
       if (model.cameraTarget) thumb.setAttribute('camera-target', model.cameraTarget);
+      if (model.cameraOrbit) thumb.setAttribute('min-camera-orbit', 'auto auto 1m');
       thumb.setAttribute('aria-hidden', 'true');
 
       const index = document.createElement('span');
@@ -84,6 +85,8 @@ function openModel(id) {
   const framing = [
     ['camera-target', model.cameraTarget],
     ['camera-orbit', model.cameraOrbit],
+    // Las anclas invisibles agrandan la caja del modelo y el visor alejaría la cámara
+    ['min-camera-orbit', model.cameraOrbit && 'auto auto 1m'],
     ['max-camera-orbit', model.cameraOrbit && 'auto auto 60m'],
   ];
   for (const [attr, value] of framing) {
@@ -114,11 +117,42 @@ mv.addEventListener('progress', (e) => {
   progressFill.parentElement.classList.toggle('done', e.detail.totalProgress >= 1);
 });
 
+// Marcador del suelo (scripts/marcador.py): ayuda a encontrar las figuras que flotan.
+// En RA de Android se ve unos segundos tras colocar el modelo y se desvanece para siempre.
+// Quick Look no ejecuta este código: allí lo oculta la animación del propio .usdz.
+const MARKER_MATERIALS = ['marcador', 'marcador_hilo'];
+const MARKER_VISIBLE_MS = 4000;
+const MARKER_FADE_MS = 500;
+let markerTimer = null;
+
+function fadeOutMarker() {
+  const materials = (mv.model?.materials || []).filter((m) => MARKER_MATERIALS.includes(m.name));
+  const from = materials.map((m) => [[...m.pbrMetallicRoughness.baseColorFactor], [...m.emissiveFactor]]);
+  let start = null;
+  const step = (now) => {
+    start ??= now;
+    const k = Math.min(1, Math.max(0, 1 - (now - start) / MARKER_FADE_MS));
+    // El brillo (emisivo) se suma aunque la opacidad sea 0: se apagan los dos a la vez
+    materials.forEach((m, i) => {
+      const [[r, g, b, a], emissive] = from[i];
+      m.pbrMetallicRoughness.setBaseColorFactor([r, g, b, a * k]);
+      m.setEmissiveFactor(emissive.map((c) => c * k));
+    });
+    if (k > 0) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
 mv.addEventListener('load', () => {
+  clearTimeout(markerTimer);
+  markerTimer = null;
   if (!mv.canActivateAR) note('Abre esta página en un móvil compatible para verlo en tu espacio.');
 });
 
 mv.addEventListener('ar-status', (e) => {
+  if (e.detail.status === 'object-placed' && !markerTimer) {
+    markerTimer = setTimeout(fadeOutMarker, MARKER_VISIBLE_MS);
+  }
   if (e.detail.status === 'failed') {
     note('No se pudo detectar el suelo. Prueba con más luz o sobre una superficie con textura.');
   }

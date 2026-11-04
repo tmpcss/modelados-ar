@@ -1,5 +1,9 @@
 # Convierte un .glb a .usdz conservando las animaciones, para Quick Look (iPhone).
-# Uso: /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/glb2usdz.py -- entrada.glb salida.usdz
+# Uso: /Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/glb2usdz.py -- entrada.glb salida.usdz [opciones]
+#   duracion=120   repite el bucle de la escena hasta durar al menos esos segundos
+#   marcador=4     el marcador del suelo (scripts/marcador.py) se ve esos segundos y luego se encoge
+#                  hasta desaparecer; con duracion= queda oculto el resto de la línea de tiempo
+import math
 import os
 import sys
 import tempfile
@@ -7,7 +11,9 @@ import tempfile
 import bpy
 from pxr import Usd, UsdGeom, UsdUtils
 
-src, dst = [os.path.abspath(p) for p in sys.argv[sys.argv.index('--') + 1:][:2]]
+args = sys.argv[sys.argv.index('--') + 1:]
+src, dst = [os.path.abspath(p) for p in args[:2]]
+options = dict(a.split('=', 1) for a in args[2:])
 work = tempfile.mkdtemp()
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -46,6 +52,31 @@ if actions:
     bpy.context.scene.frame_start = int(min(a.frame_range[0] for a in actions))
     bpy.context.scene.frame_end = int(round(max(a.frame_range[1] for a in actions)))
 
+scene = bpy.context.scene
+fps = scene.render.fps
+# Duración: Quick Look repite toda la línea de tiempo; se alarga repitiendo el bucle dentro
+if actions and 'duracion' in options:
+    loop = scene.frame_end - scene.frame_start
+    reps = max(1, math.ceil(float(options['duracion']) * fps / loop))
+    for action in actions:
+        for fc in action.fcurves:
+            fc.modifiers.new('CYCLES')
+    scene.frame_end = scene.frame_start + loop * reps
+    print(f'DURACION {reps} repeticiones de {loop / fps:.2f} s = {loop * reps / fps:.1f} s')
+
+# Marcador: visible unos segundos, luego se encoge hacia el suelo y queda oculto
+marker = bpy.data.objects.get('marcador')
+if marker and 'marcador' in options:
+    visible = scene.frame_start + round(float(options['marcador']) * fps)
+    for frame, s in ((scene.frame_start, 1), (visible, 1), (visible + round(fps / 2), 0.0001), (scene.frame_end, 0.0001)):
+        marker.scale = (s, s, s)
+        marker.keyframe_insert('scale', frame=frame)
+    for fc in marker.animation_data.action.fcurves:
+        for kp in fc.keyframe_points:
+            kp.interpolation = 'LINEAR'
+    actions = list(bpy.data.actions)
+    print(f'MARCADOR visible {options["marcador"]} s')
+
 usdc = os.path.join(work, 'model.usdc')
 bpy.ops.wm.usd_export(
     filepath=usdc,
@@ -69,4 +100,4 @@ stage.GetRootLayer().Save()
 
 if not UsdUtils.CreateNewARKitUsdzPackage(usdc, dst):
     sys.exit(f'Error al empaquetar {dst}')
-print(f'OK {dst} animaciones={len(actions)} fotogramas={bpy.context.scene.frame_start}-{bpy.context.scene.frame_end}')
+print(f'OK {dst} animaciones={len(actions)} fotogramas={scene.frame_start}-{scene.frame_end}')
